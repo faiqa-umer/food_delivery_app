@@ -15,7 +15,7 @@
 
 import 'package:flutter/material.dart';
 import '../../models/menu_item_model.dart';
-import '../../widgets/menu_item_card.dart';
+import 'package:food_delivery_flutter/widgets/menu_item_card.dart';
 
 class MenuScreen extends StatefulWidget {
   final String restaurantId;
