@@ -16,6 +16,7 @@ from flask import Blueprint
 
 from controllers.menu_controller import (
     get_menu_by_restaurant,
+    get_all_menu_items,
     get_menu_item_by_id,
     create_menu_item,
     update_menu_item,
@@ -48,6 +49,16 @@ def list_categories(restaurant_id):
 
 
 # ── Single item routes ────────────────────────────────────────
+@menu_bp.route("", methods=["GET"])
+@menu_bp.route("/", methods=["GET"])
+def list_all_menu_items():
+    """
+    GET /api/menu and /api/menu/
+    Returns all menu items in the system with pagination support.
+    """
+    return get_all_menu_items()
+
+
 @menu_bp.route("/<string:menu_item_id>", methods=["GET"])
 def retrieve_menu_item(menu_item_id):
     """

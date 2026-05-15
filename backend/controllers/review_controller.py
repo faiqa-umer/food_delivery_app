@@ -19,7 +19,7 @@ from flask import request, jsonify
 from datetime import datetime
 from bson import ObjectId
 
-from config.db import reviews_collection, restaurants_collection
+from config.database import reviews_collection, restaurants_collection
 from models.review_model import create_review_document
 from utils.helpers import (
     success_response,

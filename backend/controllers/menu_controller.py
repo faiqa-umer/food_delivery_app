@@ -17,7 +17,7 @@ from flask import request, jsonify
 from datetime import datetime
 from bson import ObjectId
 
-from config.db import menu_items_collection, restaurants_collection
+from config.database import menu_items_collection, restaurants_collection
 from models.menu_item_model import create_menu_item_document
 from utils.helpers import (
     success_response,
@@ -126,6 +126,63 @@ def get_menu_by_restaurant(restaurant_id: str):
 # 2. GET SINGLE MENU ITEM BY ID
 #    URL: GET /api/menu/<menu_item_id>
 # ─────────────────────────────────────────────────────────────
+def get_all_menu_items():
+    """
+    Returns all menu items in the system.
+
+    Query Parameters:
+        category  : filter by category
+        available : true/false
+        page      : page number
+        limit     : results per page
+    """
+    try:
+        page, limit, skip = get_pagination_params(request.args)
+
+        query_filter = {}
+        category = request.args.get("category")
+        if category:
+            query_filter["category"] = {"$regex": category, "$options": "i"}
+
+        available_param = request.args.get("available")
+        if available_param is not None:
+            query_filter["is_available"] = available_param.lower() == "true"
+
+        cursor = (
+            menu_items_collection
+            .find(query_filter)
+            .sort("created_at", -1)
+            .skip(skip)
+            .limit(limit)
+        )
+
+        items = serialize_list(list(cursor))
+        total_count = menu_items_collection.count_documents(query_filter)
+        total_pages = (total_count + limit - 1) // limit
+
+        return jsonify(success_response(
+            data={
+                "menu_items": items,
+                "pagination": {
+                    "current_page": page,
+                    "limit": limit,
+                    "total_pages": total_pages,
+                    "total_count": total_count,
+                    "has_next": page < total_pages,
+                    "has_prev": page > 1,
+                }
+            },
+            message=f"Retrieved {len(items)} menu item(s)"
+        ))
+
+    except Exception as e:
+        return jsonify(error_response(
+            message="Failed to fetch menu items",
+            status_code=500,
+            errors=[str(e)]
+        ))
+
+
 def get_menu_item_by_id(menu_item_id: str):
     """
     Fetches a single menu item by its MongoDB _id.

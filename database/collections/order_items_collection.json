@@ -1,0 +1,29 @@
+[
+  {
+    "_id": "item001",
+    "order_id": "order001",
+    "menu_item_id": "menu789",
+    "quantity": 2,
+    "price": 15.99,
+    "special_instructions": "Extra spicy",
+    "created_at": "2024-01-15T12:00:00Z"
+  },
+  {
+    "_id": "item002",
+    "order_id": "order001",
+    "menu_item_id": "menu790",
+    "quantity": 1,
+    "price": 8.50,
+    "special_instructions": "",
+    "created_at": "2024-01-15T12:00:00Z"
+  },
+  {
+    "_id": "item003",
+    "order_id": "order002",
+    "menu_item_id": "menu101",
+    "quantity": 3,
+    "price": 12.99,
+    "special_instructions": "No onions",
+    "created_at": "2024-01-15T13:00:00Z"
+  }
+]

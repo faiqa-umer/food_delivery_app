@@ -15,7 +15,9 @@
 
 import 'package:flutter/material.dart';
 import '../../models/menu_item_model.dart';
+import '../../services/api_service.dart';
 import '../../widgets/menu_item_card.dart';
+import 'cart_screen.dart';
 
 class MenuScreen extends StatefulWidget {
   final String restaurantId;
@@ -55,10 +57,11 @@ class _MenuScreenState extends State<MenuScreen>
     });
 
     try {
-      // Phase 3: Dummy data with simulated delay
-      // Phase 4: Replace with → ApiService.getMenuByRestaurant(widget.restaurantId)
-      await Future.delayed(const Duration(milliseconds: 600));
-      final items = MenuItemModel.getDummyList(widget.restaurantId);
+      final data = await ApiService.getMenuByRestaurant(widget.restaurantId);
+      final itemsJson = data['menu_items'] as List<dynamic>;
+      final items = itemsJson
+          .map((item) => MenuItemModel.fromJson(item as Map<String, dynamic>))
+          .toList();
 
       // Extract unique categories from items
       final categories = items.map((i) => i.category).toSet().toList();
@@ -72,8 +75,19 @@ class _MenuScreenState extends State<MenuScreen>
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load menu. Please try again.';
+        _errorMessage =
+            'Failed to load menu from backend. Showing local demo menu.';
         _isLoading = false;
+      });
+
+      // Fallback to demo data so the app remains usable.
+      final items = MenuItemModel.getDummyList(widget.restaurantId);
+      final categories = items.map((i) => i.category).toSet().toList();
+      categories.sort();
+      setState(() {
+        _allItems = items;
+        _categories = ['All', ...categories];
+        _selectedCategory = 'All';
       });
     }
   }
@@ -112,9 +126,8 @@ class _MenuScreenState extends State<MenuScreen>
                         item: item,
                         // Phase 3: show a snackbar as placeholder
                         // Phase 4: wire to CartService.addItem(item)
-                        onAddToCart: item.isAvailable
-                            ? () => _onAddToCart(item)
-                            : null,
+                        onAddToCart:
+                            item.isAvailable ? () => _onAddToCart(item) : null,
                       );
                     },
                   ),
@@ -163,9 +176,8 @@ class _MenuScreenState extends State<MenuScreen>
                       category,
                       style: TextStyle(
                         color: isSelected ? Colors.white : Colors.grey[700],
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 13,
                       ),
                     ),
@@ -200,34 +212,51 @@ class _MenuScreenState extends State<MenuScreen>
   }
 
   // ── Add to Cart (Phase 3: just show a snackbar) ────────────
-  void _onAddToCart(MenuItemModel item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                '${item.name} added to cart!',
-                style: const TextStyle(color: Colors.white),
+  Future<void> _onAddToCart(MenuItemModel item) async {
+    try {
+      await ApiService.addToCart(menuItemId: item.id, quantity: 1);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${item.name} added to cart!',
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+          backgroundColor: Colors.deepOrange,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'VIEW CART',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CartScreen()),
+              );
+            },
+          ),
         ),
-        backgroundColor: Colors.deepOrange,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: 'VIEW CART',
-          textColor: Colors.white,
-          onPressed: () {
-            // Phase 4: navigate to cart screen
-          },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add item to cart: $e'),
+          backgroundColor: Colors.red.shade700,
         ),
-      ),
-    );
+      );
+    }
   }
 
   // ── Loading State ──────────────────────────────────────────

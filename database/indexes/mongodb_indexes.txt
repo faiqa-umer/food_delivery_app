@@ -1,0 +1,59 @@
+# MongoDB Indexes for Food Delivery System
+# Run these commands in MongoDB Compass or mongo shell
+
+# Users collection indexes (from member 1)
+db.users.createIndex({ "email": 1 }, { unique: true })
+db.users.createIndex({ "phone": 1 }, { unique: true })
+db.users.createIndex({ "role": 1 })
+
+# Restaurants collection indexes (from member 2)
+db.restaurants.createIndex({ "name": 1 })
+db.restaurants.createIndex({ "cuisine_type": 1 })
+db.restaurants.createIndex({ "address.city": 1 })
+db.restaurants.createIndex({ "rating": -1 })
+db.restaurants.createIndex({ "is_open": 1 })
+
+# Menu items collection indexes (from member 2)
+db.menu_items.createIndex({ "restaurant_id": 1 })
+db.menu_items.createIndex({ "name": 1 })
+db.menu_items.createIndex({ "category": 1 })
+db.menu_items.createIndex({ "is_available": 1 })
+
+# Reviews collection indexes (from member 2)
+db.reviews.createIndex({ "restaurant_id": 1 })
+db.reviews.createIndex({ "user_id": 1 })
+db.reviews.createIndex({ "rating": -1 })
+db.reviews.createIndex({ "created_at": -1 })
+
+# Carts collection indexes (member 3)
+db.carts.createIndex({ "user_id": 1 }, { unique: true })
+db.carts.createIndex({ "restaurant_id": 1 })
+
+# Orders collection indexes (member 3)
+db.orders.createIndex({ "user_id": 1 })
+db.orders.createIndex({ "restaurant_id": 1 })
+db.orders.createIndex({ "status": 1 })
+db.orders.createIndex({ "created_at": -1 })
+db.orders.createIndex({ "payment_id": 1 })
+db.orders.createIndex({ "delivery_id": 1 })
+
+# Order items collection indexes (member 3)
+db.order_items.createIndex({ "order_id": 1 })
+db.order_items.createIndex({ "menu_item_id": 1 })
+
+# Payments collection indexes (member 3)
+db.payments.createIndex({ "order_id": 1 }, { unique: true })
+db.payments.createIndex({ "user_id": 1 })
+db.payments.createIndex({ "status": 1 })
+db.payments.createIndex({ "transaction_id": 1 }, { unique: true })
+
+# Deliveries collection indexes (member 3)
+db.deliveries.createIndex({ "order_id": 1 }, { unique: true })
+db.deliveries.createIndex({ "rider_id": 1 })
+db.deliveries.createIndex({ "status": 1 })
+
+# Notifications collection indexes (member 3)
+db.notifications.createIndex({ "user_id": 1 })
+db.notifications.createIndex({ "type": 1 })
+db.notifications.createIndex({ "is_read": 1 })
+db.notifications.createIndex({ "created_at": -1 })

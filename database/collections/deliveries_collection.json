@@ -1,0 +1,30 @@
+[
+  {
+    "_id": "del001",
+    "order_id": "order001",
+    "rider_id": "rider123",
+    "status": "assigned",
+    "current_location": {
+      "lat": 33.6844,
+      "lng": 73.0479
+    },
+    "estimated_delivery_time": "2024-01-15T13:00:00Z",
+    "actual_delivery_time": null,
+    "created_at": "2024-01-15T12:05:00Z",
+    "updated_at": "2024-01-15T12:10:00Z"
+  },
+  {
+    "_id": "del002",
+    "order_id": "order002",
+    "rider_id": "rider456",
+    "status": "out_for_delivery",
+    "current_location": {
+      "lat": 33.7294,
+      "lng": 73.0931
+    },
+    "estimated_delivery_time": "2024-01-15T14:00:00Z",
+    "actual_delivery_time": null,
+    "created_at": "2024-01-15T13:05:00Z",
+    "updated_at": "2024-01-15T13:35:00Z"
+  }
+]

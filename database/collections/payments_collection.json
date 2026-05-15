@@ -1,0 +1,24 @@
+[
+  {
+    "_id": "pay001",
+    "order_id": "order001",
+    "user_id": "user123",
+    "amount": 40.48,
+    "method": "jazzcash",
+    "status": "completed",
+    "transaction_id": "JAZZ_order001_1705318800",
+    "created_at": "2024-01-15T12:00:00Z",
+    "updated_at": "2024-01-15T12:01:00Z"
+  },
+  {
+    "_id": "pay002",
+    "order_id": "order002",
+    "user_id": "user456",
+    "amount": 38.97,
+    "method": "card",
+    "status": "completed",
+    "transaction_id": "CARD_order002_1705322400",
+    "created_at": "2024-01-15T13:00:00Z",
+    "updated_at": "2024-01-15T13:01:00Z"
+  }
+]

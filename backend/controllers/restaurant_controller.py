@@ -17,7 +17,7 @@ from flask import request, jsonify
 from datetime import datetime
 
 # ── Phase 1 imports ───────────────────────────────────────────
-from config.db import restaurants_collection
+from config.database import restaurants_collection
 from models.restaurant_model import create_restaurant_document
 
 # ── Phase 2 helpers ───────────────────────────────────────────

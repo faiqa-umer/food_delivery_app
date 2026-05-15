@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import '../../models/restaurant_model.dart';
+import '../../services/api_service.dart';
 import '../../widgets/restaurant_card.dart';
 import 'restaurant_details_screen.dart';
 
@@ -44,7 +45,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // In Phase 4, this will be populated dynamically from API data.
   // For now it's hardcoded to match the dummy restaurant data.
   static const List<String> _predefinedFilters = [
-    'All', 'Fast Food', 'Italian', 'Pakistani', 'Chinese', 'Desi',
+    'All',
+    'Fast Food',
+    'Italian',
+    'Pakistani',
+    'Chinese',
+    'Desi',
   ];
 
   @override
@@ -71,25 +77,34 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      // Phase 3: Simulate a network delay with dummy data
-      // Phase 4: Replace with → ApiService.getRestaurants()
-      await Future.delayed(const Duration(milliseconds: 800));
-      final data = RestaurantModel.getDummyList();
+      final response = await ApiService.getRestaurants();
+      final restaurantsJson = response['restaurants'] as List<dynamic>;
+      final restaurants = restaurantsJson
+          .map((item) => RestaurantModel.fromJson(item as Map<String, dynamic>))
+          .toList();
 
-      // Build cuisine filter list from the actual data
-      final cuisines = data.map((r) => r.cuisineType).toSet().toList();
-      cuisines.sort();
+      final cuisines = restaurants.map((r) => r.cuisineType).toSet().toList()
+        ..sort();
 
       setState(() {
-        _allRestaurants = data;
-        _filteredRestaurants = data;
-        _cuisineFilters = ['All', ..._predefinedFilters.where(cuisines.contains)];
+        _allRestaurants = restaurants;
+        _filteredRestaurants = restaurants;
+        _cuisineFilters = ['All', ...cuisines];
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load restaurants. Please try again.';
+        _errorMessage =
+            'Failed to load restaurants from backend. Showing local demo restaurants.';
         _isLoading = false;
+      });
+
+      final data = RestaurantModel.getDummyList();
+      final cuisines = data.map((r) => r.cuisineType).toSet().toList()..sort();
+      setState(() {
+        _allRestaurants = data;
+        _filteredRestaurants = data;
+        _cuisineFilters = ['All', ...cuisines];
       });
     }
   }
@@ -235,7 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
               : null,
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -292,7 +308,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   cuisine,
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.grey[700],
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     fontSize: 13,
                   ),
                 ),
