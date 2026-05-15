@@ -38,7 +38,18 @@ db = get_database()
 
 
 # ── Named collection references (like named tables in SQL) ──
-# These are the exact collections Member 2 is responsible for.
+# Member 1 - User authentication and profile management
+users_collection        = db["users"]
+
+# Member 2 - Restaurant, menu items, and reviews
 restaurants_collection  = db["restaurants"]
 menu_items_collection   = db["menu_items"]
 reviews_collection      = db["reviews"]
+
+# Member 3 - Cart, Orders, Payments, Delivery, Notifications
+carts_collection        = db["carts"]
+orders_collection       = db["orders"]
+order_items_collection  = db["order_items"]
+payments_collection     = db["payments"]
+deliveries_collection   = db["deliveries"]
+notifications_collection = db["notifications"]

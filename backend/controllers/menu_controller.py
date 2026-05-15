@@ -17,7 +17,7 @@ from flask import request, jsonify
 from datetime import datetime
 from bson import ObjectId
 
-from config.db import menu_items_collection, restaurants_collection
+from config.database import menu_items_collection, restaurants_collection
 from models.menu_item_model import create_menu_item_document
 from utils.helpers import (
     success_response,
@@ -49,23 +49,29 @@ def get_menu_by_restaurant(restaurant_id: str):
         page, limit : Pagination
     """
     try:
-        # ── Validate the restaurant ID ───────────────────────────
-        object_id, err = validate_object_id(restaurant_id)
-        if err:
-            return jsonify(err[0]), err[1]
+        # ── Convert the restaurant ID to ObjectId if possible ───
+        try:
+            object_id = ObjectId(restaurant_id)
+        except Exception:
+            return error_response(
+                message=f"Invalid restaurant ID format: '{restaurant_id}'.",
+                status_code=400
+            )
 
         # ── Confirm the restaurant actually exists ───────────────
         restaurant = restaurants_collection.find_one({"_id": object_id})
         if not restaurant:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Restaurant with ID '{restaurant_id}' not found.",
                 status_code=404
-            ))
+            )
 
         # ── Build the query filter ───────────────────────────────
-        # Note: restaurant_id is stored as a STRING in menu_items,
-        # NOT as an ObjectId. So we query with the string directly.
-        query_filter = {"restaurant_id": restaurant_id}
+        # Match menu items stored with either the plain string ID
+        # or the BSON ObjectId value.
+        query_filter = {
+            "restaurant_id": {"$in": [restaurant_id, object_id]}
+        }
 
         # Optional: filter by category
         category = request.args.get("category")
@@ -99,7 +105,7 @@ def get_menu_by_restaurant(restaurant_id: str):
             cat = item.get("category", "Other")
             grouped.setdefault(cat, []).append(item)
 
-        return jsonify(success_response(
+        return success_response(
             data={
                 "restaurant_id":   restaurant_id,
                 "restaurant_name": restaurant.get("name", ""),
@@ -112,20 +118,77 @@ def get_menu_by_restaurant(restaurant_id: str):
                 }
             },
             message=f"Retrieved {len(items)} menu item(s)"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to fetch menu",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
 # 2. GET SINGLE MENU ITEM BY ID
 #    URL: GET /api/menu/<menu_item_id>
 # ─────────────────────────────────────────────────────────────
+def get_all_menu_items():
+    """
+    Returns all menu items in the system.
+
+    Query Parameters:
+        category  : filter by category
+        available : true/false
+        page      : page number
+        limit     : results per page
+    """
+    try:
+        page, limit, skip = get_pagination_params(request.args)
+
+        query_filter = {}
+        category = request.args.get("category")
+        if category:
+            query_filter["category"] = {"$regex": category, "$options": "i"}
+
+        available_param = request.args.get("available")
+        if available_param is not None:
+            query_filter["is_available"] = available_param.lower() == "true"
+
+        cursor = (
+            menu_items_collection
+            .find(query_filter)
+            .sort("created_at", -1)
+            .skip(skip)
+            .limit(limit)
+        )
+
+        items = serialize_list(list(cursor))
+        total_count = menu_items_collection.count_documents(query_filter)
+        total_pages = (total_count + limit - 1) // limit
+
+        return success_response(
+            data={
+                "menu_items": items,
+                "pagination": {
+                    "current_page": page,
+                    "limit": limit,
+                    "total_pages": total_pages,
+                    "total_count": total_count,
+                    "has_next": page < total_pages,
+                    "has_prev": page > 1,
+                }
+            },
+            message=f"Retrieved {len(items)} menu item(s)"
+        )
+
+    except Exception as e:
+        return error_response(
+            message="Failed to fetch menu items",
+            status_code=500,
+            errors=[str(e)]
+        )
+
+
 def get_menu_item_by_id(menu_item_id: str):
     """
     Fetches a single menu item by its MongoDB _id.
@@ -141,22 +204,22 @@ def get_menu_item_by_id(menu_item_id: str):
         item = menu_items_collection.find_one({"_id": object_id})
 
         if not item:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Menu item with ID '{menu_item_id}' not found.",
                 status_code=404
-            ))
+            )
 
-        return jsonify(success_response(
+        return success_response(
             data={"menu_item": serialize_document(item)},
             message="Menu item retrieved successfully"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to fetch menu item",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -179,7 +242,7 @@ def create_menu_item():
     try:
         body = request.get_json()
         if not body:
-            return jsonify(error_response("Request body missing or invalid JSON.", 400))
+            return error_response("Request body missing or invalid JSON.", 400)
 
         # ── Validate required fields ─────────────────────────────
         required = ["restaurant_id", "name", "description", "price", "category"]
@@ -194,10 +257,10 @@ def create_menu_item():
 
         restaurant = restaurants_collection.find_one({"_id": object_id})
         if not restaurant:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Cannot add menu item — restaurant ID '{body['restaurant_id']}' not found.",
                 status_code=404
-            ))
+            )
 
         # ── Validate price is a positive number ─────────────────
         try:
@@ -205,10 +268,10 @@ def create_menu_item():
             if price < 0:
                 raise ValueError()
         except (ValueError, TypeError):
-            return jsonify(error_response(
+            return error_response(
                 message="'price' must be a positive number.",
                 status_code=422
-            ))
+            )
 
         # ── Build and insert the document ─────────────────────────
         new_item = create_menu_item_document(
@@ -230,18 +293,18 @@ def create_menu_item():
         result  = menu_items_collection.insert_one(new_item)
         created = menu_items_collection.find_one({"_id": result.inserted_id})
 
-        return jsonify(success_response(
+        return success_response(
             data={"menu_item": serialize_document(created)},
             message="Menu item created successfully",
             status_code=201
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to create menu item",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -262,7 +325,7 @@ def update_menu_item(menu_item_id: str):
 
         body = request.get_json()
         if not body:
-            return jsonify(error_response("Request body is empty.", 400))
+            return error_response("Request body is empty.", 400)
 
         # ── Protect system-managed fields ────────────────────────
         protected = ["_id", "restaurant_id", "created_at"]
@@ -286,23 +349,23 @@ def update_menu_item(menu_item_id: str):
         )
 
         if result.matched_count == 0:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Menu item with ID '{menu_item_id}' not found.",
                 status_code=404
-            ))
+            )
 
         updated = menu_items_collection.find_one({"_id": object_id})
-        return jsonify(success_response(
+        return success_response(
             data={"menu_item": serialize_document(updated)},
             message="Menu item updated successfully"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to update menu item",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -319,22 +382,22 @@ def delete_menu_item(menu_item_id: str):
         result = menu_items_collection.delete_one({"_id": object_id})
 
         if result.deleted_count == 0:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Menu item with ID '{menu_item_id}' not found.",
                 status_code=404
-            ))
+            )
 
-        return jsonify(success_response(
+        return success_response(
             data={"deleted_id": menu_item_id},
             message="Menu item deleted successfully"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to delete menu item",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -357,20 +420,20 @@ def get_menu_categories(restaurant_id: str):
         if err:
             return jsonify(err[0]), err[1]
 
-        # distinct() returns unique values of a field across all documents
+        # Support both string and ObjectId storage formats for restaurant_id
         categories = menu_items_collection.distinct(
             "category",
-            {"restaurant_id": restaurant_id}
+            {"restaurant_id": {"$in": [restaurant_id, object_id]}}
         )
 
-        return jsonify(success_response(
+        return success_response(
             data={"categories": sorted(categories)},  # sort alphabetically
             message=f"Found {len(categories)} category/categories"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to fetch categories",
             status_code=500,
             errors=[str(e)]
-        ))
+        )

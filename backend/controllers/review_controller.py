@@ -19,7 +19,7 @@ from flask import request, jsonify
 from datetime import datetime
 from bson import ObjectId
 
-from config.db import reviews_collection, restaurants_collection
+from config.database import reviews_collection, restaurants_collection
 from models.review_model import create_review_document
 from utils.helpers import (
     success_response,
@@ -103,10 +103,10 @@ def get_reviews_by_restaurant(restaurant_id: str):
 
         restaurant = restaurants_collection.find_one({"_id": object_id})
         if not restaurant:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Restaurant '{restaurant_id}' not found.",
                 status_code=404
-            ))
+            )
 
         # ── Pagination & sorting ─────────────────────────────────
         page, limit, skip = get_pagination_params(request.args)
@@ -142,7 +142,7 @@ def get_reviews_by_restaurant(restaurant_id: str):
             })
             rating_distribution[str(star)] = count
 
-        return jsonify(success_response(
+        return success_response(
             data={
                 "restaurant_id":       restaurant_id,
                 "restaurant_name":     restaurant.get("name", ""),
@@ -157,14 +157,14 @@ def get_reviews_by_restaurant(restaurant_id: str):
                 }
             },
             message=f"Retrieved {len(reviews)} review(s)"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to fetch reviews",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -181,22 +181,22 @@ def get_review_by_id(review_id: str):
         review = reviews_collection.find_one({"_id": object_id})
 
         if not review:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Review with ID '{review_id}' not found.",
                 status_code=404
-            ))
+            )
 
-        return jsonify(success_response(
+        return success_response(
             data={"review": serialize_document(review)},
             message="Review retrieved successfully"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to fetch review",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ def create_review():
     try:
         body = request.get_json()
         if not body:
-            return jsonify(error_response("Request body missing or invalid JSON.", 400))
+            return error_response("Request body missing or invalid JSON.", 400)
 
         # ── Validate required fields ─────────────────────────────
         required = ["restaurant_id", "user_id", "user_name", "rating", "comment"]
@@ -233,10 +233,10 @@ def create_review():
 
         restaurant = restaurants_collection.find_one({"_id": rest_object_id})
         if not restaurant:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Restaurant ID '{body['restaurant_id']}' not found.",
                 status_code=404
-            ))
+            )
 
         # ── Validate rating is between 1 and 5 ──────────────────
         try:
@@ -244,10 +244,10 @@ def create_review():
             if not (1.0 <= rating <= 5.0):
                 raise ValueError()
         except (ValueError, TypeError):
-            return jsonify(error_response(
+            return error_response(
                 message="'rating' must be a number between 1.0 and 5.0",
                 status_code=422
-            ))
+            )
 
         # ── Build and insert the review document ─────────────────
         new_review = create_review_document(
@@ -271,7 +271,7 @@ def create_review():
         # ── Fetch updated restaurant to show new rating ──────────
         updated_restaurant = restaurants_collection.find_one({"_id": rest_object_id})
 
-        return jsonify(success_response(
+        return success_response(
             data={
                 "review": serialize_document(created),
                 "restaurant_new_rating":       updated_restaurant.get("rating", 0.0),
@@ -279,14 +279,14 @@ def create_review():
             },
             message="Review submitted successfully",
             status_code=201
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to create review",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -305,7 +305,7 @@ def update_review(review_id: str):
 
         body = request.get_json()
         if not body:
-            return jsonify(error_response("Request body is empty.", 400))
+            return error_response("Request body is empty.", 400)
 
         # ── Protect system fields ────────────────────────────────
         protected = ["_id", "restaurant_id", "user_id", "created_at", "helpful_votes"]
@@ -320,20 +320,20 @@ def update_review(review_id: str):
                     raise ValueError()
                 body["rating"] = rating
             except (ValueError, TypeError):
-                return jsonify(error_response(
+                return error_response(
                     message="'rating' must be between 1.0 and 5.0",
                     status_code=422
-                ))
+                )
 
         body["updated_at"] = datetime.utcnow()
 
         # ── Fetch current review (to get restaurant_id for recalc) ─
         current_review = reviews_collection.find_one({"_id": object_id})
         if not current_review:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Review '{review_id}' not found.",
                 status_code=404
-            ))
+            )
 
         reviews_collection.update_one({"_id": object_id}, {"$set": body})
 
@@ -342,17 +342,17 @@ def update_review(review_id: str):
             _recalculate_restaurant_rating(current_review["restaurant_id"])
 
         updated = reviews_collection.find_one({"_id": object_id})
-        return jsonify(success_response(
+        return success_response(
             data={"review": serialize_document(updated)},
             message="Review updated successfully"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to update review",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -372,10 +372,10 @@ def delete_review(review_id: str):
         # ── Fetch review BEFORE deleting (need restaurant_id) ────
         review = reviews_collection.find_one({"_id": object_id})
         if not review:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Review '{review_id}' not found.",
                 status_code=404
-            ))
+            )
 
         restaurant_id = review["restaurant_id"]
 
@@ -384,14 +384,14 @@ def delete_review(review_id: str):
         # ── Recalculate rating after deletion ─────────────────────
         _recalculate_restaurant_rating(restaurant_id)
 
-        return jsonify(success_response(
+        return success_response(
             data={"deleted_id": review_id},
             message="Review deleted and restaurant rating updated"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to delete review",
             status_code=500,
             errors=[str(e)]
-        ))
+        )

@@ -1,0 +1,32 @@
+[
+  {
+    "_id": "notif001",
+    "user_id": "user123",
+    "type": "order_status",
+    "title": "Order Confirmed",
+    "message": "Your order has been confirmed and is being prepared.",
+    "order_id": "order001",
+    "is_read": false,
+    "created_at": "2024-01-15T12:05:00Z"
+  },
+  {
+    "_id": "notif002",
+    "user_id": "user123",
+    "type": "payment",
+    "title": "Payment Successful",
+    "message": "Your payment of Rs. 40.48 has been processed successfully.",
+    "order_id": "order001",
+    "is_read": true,
+    "created_at": "2024-01-15T12:01:00Z"
+  },
+  {
+    "_id": "notif003",
+    "user_id": "user456",
+    "type": "delivery",
+    "title": "Delivery Update",
+    "message": "Your order is out for delivery.",
+    "order_id": "order002",
+    "is_read": false,
+    "created_at": "2024-01-15T13:35:00Z"
+  }
+]

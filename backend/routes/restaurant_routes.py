@@ -54,10 +54,11 @@ def search():
     return search_restaurants()
 
 
+@restaurant_bp.route("", methods=["GET"])
 @restaurant_bp.route("/", methods=["GET"])
 def list_restaurants():
     """
-    GET /api/restaurants/
+    GET /api/restaurants and /api/restaurants/
     Returns paginated list of all restaurants.
     Optional filters: ?cuisine=Fast Food&is_open=true&sort_by=rating
     """

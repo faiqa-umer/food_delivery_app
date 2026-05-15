@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Ali Khan",
+    "email": "ali@example.com",
+    "password": "$2b$12$Xq5mH7HUVF1nDz9QZy2kZeKQe2GJ8jOqHJr6mG4MH2s3yG9HJbO0G", 
+    "phone": "03001234567",
+    "role": "customer"
+  },
+  {
+    "name": "Sara Ahmed",
+    "email": "sara@example.com",
+    "password": "$2b$12$Xq5mH7HUVF1nDz9QZy2kZeKQe2GJ8jOqHJr6mG4MH2s3yG9HJbO0G",
+    "phone": "03111234567",
+    "role": "customer"
+  }
+]

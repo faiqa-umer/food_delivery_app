@@ -17,7 +17,7 @@ from flask import request, jsonify
 from datetime import datetime
 
 # ── Phase 1 imports ───────────────────────────────────────────
-from config.db import restaurants_collection
+from config.database import restaurants_collection
 from models.restaurant_model import create_restaurant_document
 
 # ── Phase 2 helpers ───────────────────────────────────────────
@@ -100,7 +100,7 @@ def get_all_restaurants():
         total_pages = (total_count + limit - 1) // limit  # ceiling division
 
         # ── Build response ──────────────────────────────────────
-        return jsonify(success_response(
+        return success_response(
             data={
                 "restaurants": restaurants,
                 "pagination": {
@@ -113,15 +113,15 @@ def get_all_restaurants():
                 }
             },
             message=f"Retrieved {len(restaurants)} restaurant(s)"
-        ))
+        )
 
     except Exception as e:
         # Always catch unexpected errors and return a clean message
-        return jsonify(error_response(
+        return error_response(
             message="Failed to fetch restaurants",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -148,22 +148,22 @@ def get_restaurant_by_id(restaurant_id: str):
         restaurant = restaurants_collection.find_one({"_id": object_id})
 
         if not restaurant:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Restaurant with ID '{restaurant_id}' not found.",
                 status_code=404
-            ))
+            )
 
-        return jsonify(success_response(
+        return success_response(
             data={"restaurant": serialize_document(restaurant)},
             message="Restaurant retrieved successfully"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to fetch restaurant",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -188,10 +188,10 @@ def create_restaurant():
         body = request.get_json()
 
         if not body:
-            return jsonify(error_response(
+            return error_response(
                 message="Request body is missing or not valid JSON.",
                 status_code=400
-            ))
+            )
 
         # ── Validate required fields ─────────────────────────────
         required = ["name", "description", "cuisine_type", "address", "phone", "email"]
@@ -202,10 +202,10 @@ def create_restaurant():
         # ── Validate address is a dict with required keys ────────
         address = body.get("address", {})
         if not isinstance(address, dict):
-            return jsonify(error_response(
+            return error_response(
                 message="'address' must be an object with keys: street, city, state, zip",
                 status_code=422
-            ))
+            )
 
         # ── Build the document using our Phase 1 model ───────────
         new_restaurant = create_restaurant_document(
@@ -229,18 +229,18 @@ def create_restaurant():
         # We re-fetch so the response includes the auto-generated _id
         created = restaurants_collection.find_one({"_id": result.inserted_id})
 
-        return jsonify(success_response(
+        return success_response(
             data={"restaurant": serialize_document(created)},
             message="Restaurant created successfully",
             status_code=201   # 201 = Created
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to create restaurant",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -267,7 +267,7 @@ def update_restaurant(restaurant_id: str):
         # ── Parse body ───────────────────────────────────────────
         body = request.get_json()
         if not body:
-            return jsonify(error_response("Request body is empty.", 400))
+            return error_response("Request body is empty.", 400)
 
         # ── Fields that are NOT allowed to be updated directly ───
         # These are managed automatically or by the system
@@ -287,24 +287,24 @@ def update_restaurant(restaurant_id: str):
         )
 
         if result.matched_count == 0:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Restaurant with ID '{restaurant_id}' not found.",
                 status_code=404
-            ))
+            )
 
         # ── Return the updated document ──────────────────────────
         updated = restaurants_collection.find_one({"_id": object_id})
-        return jsonify(success_response(
+        return success_response(
             data={"restaurant": serialize_document(updated)},
             message="Restaurant updated successfully"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to update restaurant",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -329,22 +329,22 @@ def delete_restaurant(restaurant_id: str):
         result = restaurants_collection.delete_one({"_id": object_id})
 
         if result.deleted_count == 0:
-            return jsonify(error_response(
+            return error_response(
                 message=f"Restaurant with ID '{restaurant_id}' not found.",
                 status_code=404
-            ))
+            )
 
-        return jsonify(success_response(
+        return success_response(
             data={"deleted_id": restaurant_id},
             message="Restaurant deleted successfully"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Failed to delete restaurant",
             status_code=500,
             errors=[str(e)]
-        ))
+        )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -370,10 +370,10 @@ def search_restaurants():
         keyword = request.args.get("q", "").strip()
 
         if not keyword:
-            return jsonify(error_response(
+            return error_response(
                 message="Search keyword 'q' is required. Example: /search?q=burger",
                 status_code=400
-            ))
+            )
 
         # ── Pagination ───────────────────────────────────────────
         page, limit, skip = get_pagination_params(request.args)
@@ -402,18 +402,18 @@ def search_restaurants():
         results = serialize_list(list(cursor))
         total_count = restaurants_collection.count_documents(search_filter)
 
-        return jsonify(success_response(
+        return success_response(
             data={
                 "restaurants": results,
                 "search_keyword": keyword,
                 "total_count": total_count,
             },
             message=f"Found {total_count} restaurant(s) matching '{keyword}'"
-        ))
+        )
 
     except Exception as e:
-        return jsonify(error_response(
+        return error_response(
             message="Search failed",
             status_code=500,
             errors=[str(e)]
-        ))
+        )

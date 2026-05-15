@@ -19,7 +19,7 @@ class ApiConstants {
   // IMPORTANT: Change this IP when running on a physical device.
   // Android emulator uses 10.0.2.2 to reach the host PC's localhost.
   // Do NOT use 'localhost' — it would point to the phone itself.
-  static const String baseUrl = 'http://10.0.2.2:5000';
+  static const String baseUrl = 'http://127.0.0.1:5000/api';
 
   // ── Timeout Durations ──────────────────────────────────────
   // How long to wait before giving up on a slow network request.
@@ -27,7 +27,7 @@ class ApiConstants {
   static const Duration receiveTimeout = Duration(seconds: 15);
 
   // ── Restaurant Endpoints ───────────────────────────────────
-  static const String restaurants      = '/api/restaurants/';
+  static const String restaurants = '/api/restaurants/';
   static const String restaurantSearch = '/api/restaurants/search';
 
   // Returns the URL for a single restaurant: /api/restaurants/<id>
