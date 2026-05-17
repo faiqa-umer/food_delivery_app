@@ -31,6 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  shared_preferences: ^2.1.1
+  logger: ^1.2.2
+  
   # HTTP requests to Flask backend (Phase 4)
   http: ^1.2.1
 

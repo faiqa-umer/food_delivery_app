@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Alice Johnson",
+        "email": "alice@example.com",
+        "password": "hashed_password_1",
+        "role": "customer",
+        "phone": "1234567890",
+        "address": "123 Main St, Cityville"
+    },
+    {
+        "name": "Bob Smith",
+        "email": "bob@example.com",
+        "password": "hashed_password_2",
+        "role": "customer",
+        "phone": "0987654321",
+        "address": "456 Oak St, Townsville"
+    },
+    {
+        "name": "Carol Williams",
+        "email": "carol@example.com",
+        "password": "hashed_password_3",
+        "role": "restaurant_owner",
+        "phone": "1112223333",
+        "address": "789 Pine St, Villageville"
+    }
+]

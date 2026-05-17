@@ -296,10 +296,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: Colors.deepOrange.withOpacity(0.3),
+                          color: Color.fromRGBO(255, 77, 0, 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
-                        )
+                        ),
+                        BoxShadow(
+                          color: Color.fromRGBO(255, 77, 0, 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
                       ]
                     : [],
               ),

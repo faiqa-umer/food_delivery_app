@@ -6,11 +6,118 @@
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
+
+final logger = Logger();
 
 class ApiService {
   // Use your PC IP address for network testing
-  static const String baseUrl = 'http://192.168.1.13:5000/api';
+  static const String baseUrl = 'http://192.168.18.11:5000/api';
   static const String userId = 'default_user'; // Phase 3: Use default user
+  
+  static Future<Map<String, String>> _getHeaders({bool auth = false}) async {
+  final headers = <String, String>{
+    'Content-Type': 'application/json',
+  };
+
+  if (auth) {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+      headers['X-User-Id'] = userId; // optional
+    }
+  } else {
+    headers['X-User-Id'] = userId;
+  }
+
+  return headers;
+}
+
+  // ─── LOGIN ───
+  static Future<Map<String, dynamic>> login(String email, String password, String role) async {
+    try {
+      final url = Uri.parse('$baseUrl/auth/login');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password, 'role': role}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      // Save token locally if login succeeds
+      if (response.statusCode == 200 && data["success"] == true) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("token", data["token"]);
+      }
+
+      return data;
+    } catch (e) {
+      return {"success": false, "message": e.toString()};
+    }
+  }
+
+  // ─── REGISTER ───
+  static Future<Map<String, dynamic>> register({
+    required String name,
+    required String email,
+    required String password,
+    String? phone,
+    required String role,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/auth/register');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'phone': phone,
+          'role': role,
+        }),
+      );
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"success": false, "message": e.toString()};
+    }
+  }
+
+  // ─── GET PROFILE ───
+  static Future<Map<String, dynamic>> getProfile() async {
+      try {
+      final url = Uri.parse('$baseUrl/auth/profile');
+      final response = await http.get(url, headers: await _getHeaders(auth: true));
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"success": false, "message": e.toString()};
+    }
+    } 
+
+  // ─── UPDATE PROFILE ───
+  static Future<Map<String, dynamic>> updateProfile({required String name, String? phone}) async {
+    try {
+      final url = Uri.parse('$baseUrl/auth/profile');
+      final response = await http.put(
+        url,
+        headers: await _getHeaders(auth: true),
+        body: jsonEncode({"name": name, "phone": phone}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"success": false, "message": e.toString()};
+    }
+  }
+
+  // ─── LOGOUT ───
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("token");
+  }
 
   // ── MENU ENDPOINTS ─────────────────────────────────────────
 
@@ -33,7 +140,7 @@ class ApiService {
         throw Exception('Failed to load menu: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading menu: $e');
+      logger.e('Error loading menu', e);
       rethrow;
     }
   }
@@ -58,7 +165,7 @@ class ApiService {
         throw Exception('Failed to load cart: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading cart: $e');
+      logger.e('Error loading cart', e);
       rethrow;
     }
   }
@@ -92,7 +199,7 @@ class ApiService {
         throw Exception('Failed to add to cart: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error adding to cart: $e');
+      logger.e('Error adding to cart', e);
       rethrow;
     }
   }
@@ -121,7 +228,7 @@ class ApiService {
         throw Exception('Failed to update cart: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error updating cart: $e');
+      logger.e('Error updating cart', e);
       rethrow;
     }
   }
@@ -141,7 +248,7 @@ class ApiService {
         throw Exception('Failed to remove from cart: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error removing from cart: $e');
+      logger.e('Error removing from cart', e);
       rethrow;
     }
   }
@@ -161,7 +268,7 @@ class ApiService {
         throw Exception('Failed to clear cart: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error clearing cart: $e');
+      logger.e('Error clearing cart', e);
       rethrow;
     }
   }
@@ -198,7 +305,7 @@ class ApiService {
         throw Exception('Failed to create order: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error creating order: $e');
+      logger.e('Error creating order', e);
       rethrow;
     }
   }
@@ -221,7 +328,7 @@ class ApiService {
         throw Exception('Failed to load orders: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading orders: $e');
+      logger.e('Error loading orders', e);
       rethrow;
     }
   }
@@ -263,7 +370,7 @@ class ApiService {
         throw Exception('Failed to load restaurants: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading restaurants: $e');
+      logger.e('Error loading restaurants', e);
       rethrow;
     }
   }
@@ -286,7 +393,7 @@ class ApiService {
         throw Exception('Failed to load order: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading order: $e');
+      logger.e('Error loading order: $e');
       rethrow;
     }
   }
@@ -320,7 +427,7 @@ class ApiService {
         throw Exception('Failed to update order: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error updating order: $e');
+      logger.e('Error updating order: $e');
       rethrow;
     }
   }
@@ -356,7 +463,7 @@ class ApiService {
         throw Exception('Failed to process payment: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error processing payment: $e');
+      logger.e('Error processing payment', e);
       rethrow;
     }
   }
@@ -379,7 +486,7 @@ class ApiService {
         throw Exception('Failed to load payment: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading payment: $e');
+      logger.e('Error loading payment: $e');
       rethrow;
     }
   }
@@ -404,7 +511,7 @@ class ApiService {
         throw Exception('Failed to load delivery: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading delivery: $e');
+      logger.e('Error loading delivery', e);
       rethrow;
     }
   }
@@ -427,7 +534,7 @@ class ApiService {
         throw Exception('Failed to load payment: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading payment: $e');
+      logger.e('Error loading payment', e);
       rethrow;
     }
   }
@@ -456,7 +563,7 @@ class ApiService {
         throw Exception('Failed to update delivery: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error updating delivery: $e');
+      logger.e('Error updating delivery', e);
       rethrow;
     }
   }
@@ -481,7 +588,7 @@ class ApiService {
         throw Exception('Failed to load notifications: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading notifications: $e');
+      logger.e('Error loading notifications: $e');
       rethrow;
     }
   }
@@ -501,7 +608,7 @@ class ApiService {
         throw Exception('Failed to mark notification as read');
       }
     } catch (e) {
-      print('Error marking notification as read: $e');
+      logger.e('Error marking notification as read', e);
       rethrow;
     }
   }

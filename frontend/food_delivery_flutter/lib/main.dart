@@ -8,6 +8,10 @@
 
 import 'package:flutter/material.dart';
 import 'customer/screens/home_screen.dart';
+import 'customer/screens/splash_screen.dart';
+import 'customer/screens/login_screen.dart';
+import 'customer/screens/register_screen.dart';
+import 'customer/screens/profile_screen.dart';
 
 void main() {
   runApp(const FoodDeliveryApp());
@@ -52,10 +56,16 @@ class FoodDeliveryApp extends StatelessWidget {
         ),
       ),
 
-      // ── Initial Screen ────────────────────────────────────────
-      // Phase 3 & 4: Start at HomeScreen (restaurant listing)
-      // Phase 7: Replace with LoginScreen or SplashScreen
-      home: const HomeScreen(),
+      // ── START SCREEN ───────────────────────
+      initialRoute: '/',
+       // ── ROUTES FLOW ────────────────────────
+      routes: {
+        '/': (context) => const SplashScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
     );
   }
 }

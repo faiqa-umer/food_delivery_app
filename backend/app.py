@@ -32,8 +32,19 @@ def create_app():
     # ── Enable CORS for all routes ────────────────────────────
     # Allows Flutter (running on a different port/device) to
     # make HTTP requests to this server without being blocked.
-    CORS(app)
+    # ── Enable full CORS for Flutter Web ─────────
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
+    # ── Root Index Route ──────────────────────────────────────
+    @app.route("/", methods=["GET"])
+    def index():
+        return jsonify({
+            "message": "Food Delivery API",
+            "version": "3.0.0",
+            "status": "running",
+            "docs": "Visit /api/health for all available endpoints"
+        }), 200
+    
     # ── Health Check ──────────────────────────────────────────
     @app.route("/api/health", methods=["GET"])
     def health_check():
@@ -56,6 +67,7 @@ def create_app():
     # ── Register Blueprints ───────────────────────────────────
     # url_prefix: every route in that blueprint is prefixed with this
     # e.g., restaurant_bp's "/" becomes "/api/restaurants/"
+    from routes.auth_routes        import auth_bp
     from routes.restaurant_routes import restaurant_bp
     from routes.menu_routes        import menu_bp
     from routes.review_routes      import review_bp
@@ -65,6 +77,7 @@ def create_app():
     from routes.delivery_routes    import delivery_bp
     from routes.notification_routes import notification_bp
 
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(restaurant_bp, url_prefix="/api/restaurants")
     app.register_blueprint(menu_bp,       url_prefix="/api/menu")
     app.register_blueprint(review_bp,     url_prefix="/api/reviews")
@@ -85,6 +98,7 @@ if __name__ == "__main__":
     print("🍔  Food Delivery Backend — Phase 3 Running!")
     print("=" * 55)
     print("📡  Base URL       : http://192.168.1.13:5000")
+    print("🔑  Authentication : http://192.168.1.13:5000/api/auth")
     print("🔗  Health         : http://192.168.1.13:5000/api/health")
     print("🍽️   Restaurants    : http://192.168.1.13:5000/api/restaurants/")
     print("📋  Menu           : http://192.168.1.13:5000/api/menu/")
