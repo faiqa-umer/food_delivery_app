@@ -161,7 +161,8 @@ class _ReviewScreenState extends State<ReviewScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black
+                .withAlpha((0.07 * 255).toInt()), 
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -219,7 +220,8 @@ class _ReviewScreenState extends State<ReviewScreen>
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(Icons.star, size: 12, color: Color(0xFFFFC107)),
+                      const Icon(Icons.star,
+                          size: 12, color: Color(0xFFFFC107)),
                       const SizedBox(width: 6),
                       // Progress bar
                       Expanded(
@@ -278,11 +280,11 @@ class _ReviewScreenState extends State<ReviewScreen>
             ),
           ),
           const SizedBox(width: 8),
-          _sortChip('Newest',  'newest'),
+          _sortChip('Newest', 'newest'),
           const SizedBox(width: 6),
           _sortChip('Highest', 'highest'),
           const SizedBox(width: 6),
-          _sortChip('Lowest',  'lowest'),
+          _sortChip('Lowest', 'lowest'),
         ],
       ),
     );

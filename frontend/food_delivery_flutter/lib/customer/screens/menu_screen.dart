@@ -176,7 +176,7 @@ class _MenuScreenState extends State<MenuScreen>
                           horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.white.withOpacity(0.3)
+                            ? Colors.white.withAlpha((0.3 * 255).toInt())
                             : Colors.grey[200],
                         borderRadius: BorderRadius.circular(10),
                       ),

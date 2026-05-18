@@ -30,7 +30,7 @@ class MenuItemCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withAlpha((0.06 * 255).round()), // alpha ≈ 15
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -71,7 +71,8 @@ class MenuItemCard extends StatelessWidget {
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+          borderRadius:
+              const BorderRadius.horizontal(left: Radius.circular(12)),
           child: item.imageUrl.isNotEmpty
               ? Image.network(
                   item.imageUrl,
@@ -87,7 +88,9 @@ class MenuItemCard extends StatelessWidget {
         // "OUT OF STOCK" label on image when unavailable
         if (!item.isAvailable)
           Positioned(
-            bottom: 0, left: 0, right: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
             child: Container(
               color: Colors.black54,
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -147,9 +150,10 @@ class MenuItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withAlpha((0.12 * 255).round()), // alpha ≈ 31
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(
+            color: color.withAlpha((0.4 * 255).round())), // alpha ≈ 102
       ),
       child: Text(
         label,
@@ -229,9 +233,8 @@ class MenuItemCard extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: item.isAvailable
-                  ? const Color(0xFFE65100)
-                  : Colors.grey[300],
+              color:
+                  item.isAvailable ? const Color(0xFFE65100) : Colors.grey[300],
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

@@ -24,7 +24,7 @@ class ReviewCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withAlpha((0.06 * 255).round()), // alpha ≈ 15
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -75,9 +75,7 @@ class ReviewCard extends StatelessWidget {
           radius: 22,
           backgroundColor: _avatarColor(review.userName),
           child: Text(
-            review.userName.isNotEmpty
-                ? review.userName[0].toUpperCase()
-                : '?',
+            review.userName.isNotEmpty ? review.userName[0].toUpperCase() : '?',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -138,9 +136,9 @@ class ReviewCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _subRatingItem('Food',     review.foodRating),
+          _subRatingItem('Food', review.foodRating),
           _subRatingDivider(),
-          _subRatingItem('Service',  review.serviceRating),
+          _subRatingItem('Service', review.serviceRating),
           _subRatingDivider(),
           _subRatingItem('Delivery', review.deliveryRating),
         ],

@@ -33,7 +33,7 @@ class RestaurantCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withAlpha((0.08 * 255).round()), // alpha ≈ 20
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -93,13 +93,15 @@ class RestaurantCard extends StatelessWidget {
                   errorBuilder: (context, error, stackTrace) => Container(
                     height: 180,
                     color: Colors.grey[200],
-                    child: const Icon(Icons.restaurant, size: 60, color: Colors.grey),
+                    child: const Icon(Icons.restaurant,
+                        size: 60, color: Colors.grey),
                   ),
                 )
               : Container(
                   height: 180,
                   color: Colors.grey[200],
-                  child: const Icon(Icons.restaurant, size: 60, color: Colors.grey),
+                  child: const Icon(Icons.restaurant,
+                      size: 60, color: Colors.grey),
                 ),
         ),
 
@@ -107,12 +109,15 @@ class RestaurantCard extends StatelessWidget {
         if (!restaurant.isOpen)
           Positioned.fill(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
               child: Container(
-                color: Colors.black.withOpacity(0.55),
+                color:
+                    Colors.black.withAlpha((0.55 * 255).round()), // alpha ≈ 140
                 alignment: Alignment.center,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.red[700],
                     borderRadius: BorderRadius.circular(8),
@@ -142,7 +147,8 @@ class RestaurantCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black
+                      .withAlpha((0.15 * 255).round()), // alpha ≈ 38
                   blurRadius: 6,
                 ),
               ],
@@ -154,7 +160,8 @@ class RestaurantCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   '${restaurant.deliveryTimeMin} min',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -243,7 +250,8 @@ class RestaurantCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           // Minimum order
-          Icon(Icons.shopping_bag_outlined, size: 14, color: Colors.orange[700]),
+          Icon(Icons.shopping_bag_outlined,
+              size: 14, color: Colors.orange[700]),
           const SizedBox(width: 4),
           Text(
             'Min: PKR ${restaurant.minimumOrder.toStringAsFixed(0)}',

@@ -158,10 +158,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: _getStatusColor(_payment!.status).withOpacity(0.1),
+        color: _getStatusColor(_payment!.status)
+            .withAlpha((0.1 * 255).toInt()), // was withOpacity(0.1)
         border: Border(
           bottom: BorderSide(
-            color: _getStatusColor(_payment!.status).withOpacity(0.3),
+            color: _getStatusColor(_payment!.status)
+                .withAlpha((0.3 * 255).toInt()), // was withOpacity(0.3)
             width: 1,
           ),
         ),

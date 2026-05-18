@@ -120,8 +120,8 @@ class _DeliveryStatusScreenState extends State<DeliveryStatusScreen> {
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _loadDeliveries,
-        child: const Icon(Icons.refresh),
         tooltip: 'Refresh Deliveries',
+        child: const Icon(Icons.refresh),
       ),
     );
   }
@@ -234,10 +234,12 @@ class _DeliveryStatusScreenState extends State<DeliveryStatusScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(delivery.status).withOpacity(0.1),
+                    color: _getStatusColor(delivery.status)
+                        .withAlpha((0.1 * 255).round()),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _getStatusColor(delivery.status).withOpacity(0.3),
+                      color: _getStatusColor(delivery.status)
+                          .withAlpha((0.3 * 255).round()),
                     ),
                   ),
                   child: Text(
